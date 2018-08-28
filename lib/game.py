@@ -3,24 +3,29 @@
 import pygame
 from lib.const import Config
 from lib.music import *
+from lib.image import *
+from lib.button import *
 
 
-def loop(config, music_files):
+def loop(config, music_files, image_files):
     """
     Main Loop
     :param config: Game config
     :param music_files: Music list
-    :return:
+    :param image_files: Image list
+    :return: None
     """
     screen = pygame.display.set_mode(config.DISPLAY_RESOLUTION,
                                      config.DISPLAY_MODE, 32)
     pygame.display.set_caption("Soduku")
 
+    media_buttons = load_media_button(config, image_files)
+
     track_end = pygame.USEREVENT + 1
-    music_play(config, music_files)
+    pygame.mixer.music.set_volume(1.)
+    music_play(config, music_files, media_buttons)
 
     while True:
-        print(config.MUSIC_STATE)
         for event in pygame.event.get():
             if event.type is pygame.QUIT:
                 pygame.quit()
@@ -31,21 +36,14 @@ def loop(config, music_files):
                 music_next(config, music_files)
 
             elif event.type is pygame.MOUSEBUTTONDOWN:
-                pass
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                check_media_button_is_press(config, music_files,
+                                            media_buttons, (mouse_x, mouse_y))
+                check_menu_button_is_press()
 
-            elif event.type is pygame.KEYDOWN:
-                if event.key is pygame.K_k:
-                    music_pause(config)
-                elif event.key is pygame.K_j:
-                    music_play(config, music_files)
-                elif event.key is pygame.K_s:
-                    music_stop(config)
-                elif event.key is pygame.K_n:
-                    music_next(config, music_files)
-                elif event.key is pygame.K_p:
-                    music_prev(config, music_files)
+        screen.fill((220, 0, 100))
+        render_media_button(media_buttons, screen)
 
-        screen.fill((255, 255, 255))
         pygame.display.update()
 
 
@@ -59,10 +57,8 @@ def run():
     config = Config()
 
     music_files = music_init(config)
-    print(music_files)
+    image_files = image_load(config)
+    print(music_files, image_files)
     pygame.init()
 
-    loop(config, music_files)
-
-
-run()
+    loop(config, music_files, image_files)
