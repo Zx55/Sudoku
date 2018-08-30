@@ -1,50 +1,72 @@
 # -*- coding:utf-8 -*-
 
 import pygame
-from lib.const import Config
-from lib.music import *
-from lib.image import *
+from sys import exit
+import lib.image as image
+import lib.music as music
 from lib.button import *
+from lib.menu import Menu
+from lib.setting import Setting
 
 
-def loop(config, music_files, image_files):
+def check_events(config, me, menu, setting):
     """
-    Main Loop
-    :param config: Game config
-    :param music_files: Music list
-    :param image_files: Image list
+    Handle all pygame events
+    :param config: Global game config
+    :param me: Game MusicEngine
+    :param menu: Menu Surface
+    :param setting: Setting Surface
     :return: None
     """
-    screen = pygame.display.set_mode(config.DISPLAY_RESOLUTION,
-                                     config.DISPLAY_MODE, 32)
-    pygame.display.set_caption("Soduku")
-
-    media_buttons = load_media_button(config, image_files)
-
     track_end = pygame.USEREVENT + 1
-    pygame.mixer.music.set_volume(1.)
-    music_play(config, music_files, media_buttons)
 
-    while True:
-        for event in pygame.event.get():
-            if event.type is pygame.QUIT:
-                pygame.quit()
-                return
+    for event in pygame.event.get():
+        if event.type is pygame.QUIT:
+            pygame.quit()
+            config.save_config()
+            exit()
 
-            elif event.type is track_end and config.MUSIC_STATE is \
-                    config.MUSIC_STATE_PLAY:
-                music_next(config, music_files)
+        elif event.type is track_end and config.MUSIC_STATE is config.MUSIC_STATE_PLAY:
+            me.next_track(config)
 
-            elif event.type is pygame.MOUSEBUTTONDOWN:
-                mouse_x, mouse_y = pygame.mouse.get_pos()
-                check_media_button_is_press(config, music_files,
-                                            media_buttons, (mouse_x, mouse_y))
-                check_menu_button_is_press()
+        elif event.type is pygame.MOUSEBUTTONDOWN:
+            mouse_pos = pygame.mouse.get_pos()
 
-        screen.fill((220, 0, 100))
-        render_media_button(media_buttons, screen)
+            if config.GAME_STATE is config.GAME_STATE_SETTING:
+                setting.check_setting_buttons_is_press(config, mouse_pos)
 
-        pygame.display.update()
+            else:
+                me.check_media_button_is_press(config, mouse_pos)
+                menu.check_utils_button_is_press(config, mouse_pos)
+
+                if config.GAME_STATE is config.GAME_STATE_MENU:
+                    menu.check_menu_button_is_press()
+
+
+def render(config, screen, me, menu, setting, themes):
+    """
+    Draw all elements on the game window
+    :param config: Global game config
+    :param screen: Game window
+    :param me: Game MusicEngine
+    :param menu: Menu Surface
+    :param setting: Setting Surface
+    :param themes: All game color themes
+    :return: None
+    """
+    screen.blit(themes[config.SETTING_COLOR_THEME], (0, 0))
+    me.render_buttons(screen)
+    menu.render_utils_buttons(screen)
+
+    if config.GAME_STATE is not config.GAME_STATE_GAMING:
+        menu.render_menu_buttons(screen)
+    elif config.GAME_STATE is not config.GAME_STATE_MENU:
+        pass
+
+    if config.GAME_STATE is config.GAME_STATE_SETTING:
+        setting.render(config, screen)
+
+    pygame.display.update()
 
 
 def run():
@@ -52,13 +74,23 @@ def run():
     Game start
     :return: None
     """
-
-    # Initialize pygame
-    config = Config()
-
-    music_files = music_init(config)
-    image_files = image_load(config)
-    print(music_files, image_files)
+    # Initialize pygame and other game modules
+    pygame.mixer.pre_init(44100, 16, 2)
     pygame.init()
 
-    loop(config, music_files, image_files)
+    config = Config()
+    image_files = image.load(config)
+    setting = Setting(config, image_files)
+    menu = Menu(config, image_files)
+    themes = image.init_theme(config, image_files, setting)
+    me = music.MusicEngine(config, image_files)
+    me.play(config)
+
+    # Create game window
+    screen = pygame.display.set_mode(config.DISPLAY_RESOLUTION, config.DISPLAY_MODE, 32)
+    pygame.display.set_caption("Soduku")
+
+    # Main Loop
+    while True:
+        check_events(config, me, menu, setting)
+        render(config, screen, me, menu, setting, themes)
