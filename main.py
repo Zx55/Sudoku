@@ -8,8 +8,10 @@ lib_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib")
 sys.path.insert(0, lib_dir)
 
 try:
-    import game
-    game.run()
+    from loop import run
+    run()
+    # import soduku
+    # soduku.test()
 
 except ModuleNotFoundError:
     import tkinter as tk

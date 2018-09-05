@@ -1,96 +1,105 @@
 # -*- coding:utf-8 -*-
 
+from lib.cell import Cells
 import pygame
-from sys import exit
-import lib.image as image
-import lib.music as music
-from lib.button import *
-from lib.menu import Menu
-from lib.setting import Setting
+from lib.button import Button
 
 
-def check_events(config, me, menu, setting):
-    """
-    Handle all pygame events
-    :param config: Global game config
-    :param me: Game MusicEngine
-    :param menu: Menu Surface
-    :param setting: Setting Surface
-    :return: None
-    """
-    track_end = pygame.USEREVENT + 1
+class Game:
+    def __init__(self, config, image_files):
+        self.image_files = image_files
+        self.difficulty = config.DIFFICULTY
+        self.cells = None
+        self.font = pygame.font.Font(config.FONT_MYRAID_PATH, 30)
 
-    for event in pygame.event.get():
-        if event.type is pygame.QUIT:
-            pygame.quit()
-            config.save_config()
-            exit()
+        self.game_buttons = [
+            Button(0, config.UNDO_POS, pygame.image.load(image_files[config.BUTTON_UNDO]), None,
+                   pygame.image.load(image_files[config.BUTTON_UNDO_INACTIVE]), None),
+            Button(0, config.REDO_POS, pygame.image.load(image_files[config.BUTTON_REDO]), None,
+                   pygame.image.load(image_files[config.BUTTON_REDO_INACTIVE]), None),
+            Button("Menu", config.GAME_MENU_POS, pygame.image.load(image_files[config.BUTTON_GAME_MENU]), None),
+            Button("Flush", config.FLUSH_POS, pygame.image.load(image_files[config.BUTTON_FLUSH]), None),
+        ]
 
-        elif event.type is track_end and config.MUSIC_STATE is config.MUSIC_STATE_PLAY:
-            me.next_track(config)
+        self.congratulation = pygame.image.load(image_files[config.TEXT_CONG])
+        self.clear_buttons = [
+            Button("Restart", config.CLEAR_RE_POS, pygame.image.load(image_files[config.BUTTON_CLEAR_RESTART]), None),
+            Button("Menu", config.CLEAR_MENU_POS, pygame.image.load(image_files[config.BUTTON_CLEAR_MENU]), None)
+        ]
 
-        elif event.type is pygame.MOUSEBUTTONDOWN:
-            mouse_pos = pygame.mouse.get_pos()
+    def init(self, config, difficulty=None, load=False):
+        if difficulty is not None:
+            self.difficulty = difficulty
+            config.TIME = 0
 
-            if config.GAME_STATE is config.GAME_STATE_SETTING:
-                setting.check_setting_buttons_is_press(config, mouse_pos)
+        config.UN_STK[0].clear()
+        config.RE_STK[0].clear()
+        config.CELL_BUTTON_NUM = config.UN_STK[1] = config.RE_STK[1] = 0
+        self.cells = Cells(config, self.image_files, self.difficulty, load)
 
-            else:
-                me.check_media_button_is_press(config, mouse_pos)
-                menu.check_utils_button_is_press(config, mouse_pos)
+    def check_stack(self, config):
+        if config.UN_STK[1] == 0 and self.game_buttons[0].label == 0:
+            self.game_buttons[0].change_state(True)
+            self.game_buttons[0].label = 1
 
-                if config.GAME_STATE is config.GAME_STATE_MENU:
-                    menu.check_menu_button_is_press()
+        elif config.UN_STK[1] != 0 and self.game_buttons[0].label == 1:
+            self.game_buttons[0].change_state(False)
+            self.game_buttons[0].label = 0
 
+        if config.RE_STK[1] == 0 and self.game_buttons[1].label == 0:
+            self.game_buttons[1].change_state(True)
+            self.game_buttons[1].label = 1
 
-def render(config, screen, me, menu, setting, themes):
-    """
-    Draw all elements on the game window
-    :param config: Global game config
-    :param screen: Game window
-    :param me: Game MusicEngine
-    :param menu: Menu Surface
-    :param setting: Setting Surface
-    :param themes: All game color themes
-    :return: None
-    """
-    screen.blit(themes[config.SETTING_COLOR_THEME], (0, 0))
-    me.render_buttons(screen)
-    menu.render_utils_buttons(screen)
+        elif config.RE_STK[1] != 0 and self.game_buttons[1].label == 1:
+            self.game_buttons[1].change_state(False)
+            self.game_buttons[1].label = 0
 
-    if config.GAME_STATE is not config.GAME_STATE_GAMING:
-        menu.render_menu_buttons(screen)
-    elif config.GAME_STATE is not config.GAME_STATE_MENU:
-        pass
+    def check_clear_button_is_press(self, config, point):
+        if self.clear_buttons[0].is_press(point):
+            config.GAME_STATE = config.GAME_STATE_PREV = config.GAME_STATE_GAMING
+            config.TIME = 0
+            self.init(config)
 
-    if config.GAME_STATE is config.GAME_STATE_SETTING:
-        setting.render(config, screen)
+        elif self.clear_buttons[1].is_press(point):
+            config.GAME_STATE = config.GAME_STATE_MENU
 
-    pygame.display.update()
+    def check_game_button_is_press(self, config, point):
+        if self.game_buttons[0].is_press(point):
+            self.cells.undo(config)
 
+        elif self.game_buttons[1].is_press(point):
+            self.cells.redo(config)
 
-def run():
-    """
-    Game start
-    :return: None
-    """
-    # Initialize pygame and other game modules
-    pygame.mixer.pre_init(44100, 16, 2)
-    pygame.init()
+        elif self.game_buttons[2].is_press(point):
+            config.GAME_STATE = config.GAME_STATE_MENU
+            config.SAVE_DATA = self.cells.data
 
-    config = Config()
-    image_files = image.load(config)
-    setting = Setting(config, image_files)
-    menu = Menu(config, image_files)
-    themes = image.init_theme(config, image_files, setting)
-    me = music.MusicEngine(config, image_files)
-    me.play(config)
+        elif self.game_buttons[3].is_press(point):
+            self.init(config)
 
-    # Create game window
-    screen = pygame.display.set_mode(config.DISPLAY_RESOLUTION, config.DISPLAY_MODE, 32)
-    pygame.display.set_caption("Soduku")
+    def check_right_click(self, config, point):
+        if config.CELL_CLICK_INDEX[0] != 0:
+            config.CELL_CLICK_INDEX[0] = -1
+        self.cells.check_cell_button_is_over(config, point)
 
-    # Main Loop
-    while True:
-        check_events(config, me, menu, setting)
-        render(config, screen, me, menu, setting, themes)
+    def render(self, config, surface):
+        self.cells.render(config, surface)
+
+        if config.SETTING[config.SETTING_TIMER] is config.SETTING_ON:
+            self.render_timer(config, surface)
+
+        self.check_stack(config)
+        for button in self.game_buttons:
+            button.render(surface)
+
+    def render_clear(self, config, surface):
+        surface.blit(self.congratulation, config.CONG_POS)
+        for button in self.clear_buttons:
+            button.render(surface)
+
+    def render_timer(self, config, surface):
+        sec = config.TIME % 60
+        minute = config.TIME // 60 % 60
+        hour = config.TIME // 3600
+        time_str = "{} : {:0>2} : {:0>2}".format(hour, minute, sec)
+        surface.blit(self.font.render(time_str, True, config.TIMER_COLOR), config.TIMER_POS)
