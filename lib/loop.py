@@ -15,6 +15,8 @@ def check_events(config, me, menu, setting, game):
         if event.type is pygame.QUIT:
             pygame.quit()
             config.save_config(game)
+            if config.API_FOUND is True:
+                game.generator.destroy_generator()
             exit()
 
         elif event.type is config.TRACK_END and config.MUSIC_STATE is config.MUSIC_STATE_PLAY:
@@ -86,10 +88,12 @@ def render(config, screen, me, menu, setting, themes, game):
     pygame.display.update()
 
 
-def result_check(config):
+def result_check(config, game):
+    print(config.CELL_BUTTON_NUM)
     if config.GAME_STATE is config.GAME_STATE_GAMING and config.CELL_BUTTON_NUM == 0:
-        config.GAME_STATE = config.GAME_STATE_PREV = config.GAME_STATE_CLEAR
-        config.SAVE_DATA = None
+        if game.cells.check_clear(config):
+            config.GAME_STATE = config.GAME_STATE_PREV = config.GAME_STATE_CLEAR
+            config.SOLUTION = None
 
 
 def run():
@@ -114,4 +118,4 @@ def run():
     while True:
         check_events(config, me, menu, setting, game)
         render(config, screen, me, menu, setting, themes, game)
-        result_check(config)
+        result_check(config, game)

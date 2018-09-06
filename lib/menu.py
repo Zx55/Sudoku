@@ -28,11 +28,11 @@ class Menu:
 
     def check_load(self, config):
         button = self.menu_buttons[-1]
-        if config.SAVE_DATA is None and button.label is True:
+        if config.PROBLEM is None and button.label is True:
             button.change_state(True)
             button.label = False
 
-        elif config.SAVE_DATA is not None and button.label is False:
+        elif config.PROBLEM is not None and button.label is False:
             button.change_state(False)
             button.label = True
 
@@ -42,7 +42,7 @@ class Menu:
                 config.GAME_STATE = config.GAME_STATE_PREV = config.GAME_STATE_GAMING
                 game.init(config, difficulty=button.label)
 
-        if self.menu_buttons[-1].is_press(point) and config.SAVE_DATA is not None:
+        if self.menu_buttons[-1].is_press(point) and config.PROBLEM is not None:
             config.GAME_STATE = config.GAME_STATE_PREV = config.GAME_STATE_GAMING
             game.init(config, load=True)
 

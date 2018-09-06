@@ -36,8 +36,10 @@ class Button:
             self.func = self.func_normal
         self.width, self.height = self.image.get_size()
 
-    def change_image(self, image):
-        self.image = self.image_normal = image
+    def change_image(self, image_normal, image_press=None):
+        self.image = self.image_normal = image_normal
+        if image_press is not None:
+            self.image_press = image_press
 
     def render(self, surface):
         surface.blit(self.image, (self.x, self.y))

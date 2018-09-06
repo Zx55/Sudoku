@@ -1,8 +1,7 @@
 # -*- coding:utf-8 -*-
 
 import pygame
-import json
-from random import randint
+from copy import deepcopy
 from lib.button import Button
 
 
@@ -21,7 +20,7 @@ class Cell:
                                       pygame.image.load(image_files[config.EXPAND_NUM_OVER + i]), None)
                                for i in range(9)]
 
-    def read(self, config, data, button_cell, nums_new):
+    def read(self, config, data, button_cell, nums_new, nums_new_over):
         a, b = self.no % 3 * 3, self.no // 3 * 3
         self.index = [(i, j) for i in range(b, b + 3) for j in range(a, a + 3)]
 
@@ -38,8 +37,8 @@ class Cell:
 
             elif data[i][j] < 0:
                 self.buttons.append(Button([i, j, l, k], (x + bias_x, y + bias_y),
-                                           nums_new[-data[i][j] - 1], None))
-                config.CELL_BUTTON_NUM += 1
+                                           nums_new[-data[i][j] - 1], None,
+                                           nums_new_over[-data[i][j] - 1], None))
                 k += 1
 
     def render_button(self, surface):
@@ -48,11 +47,9 @@ class Cell:
 
 
 class Cells:
-    def __init__(self, config, image_files, difficulty, load):
-        self.difficulty = difficulty
-
+    def __init__(self, config, image_files):
         self.cells = [Cell(config, image_files, i, config.CELL_POS[i]) for i in range(9)]
-        self.data = self.read(config, load)
+        self.data = deepcopy(config.PROBLEM)
 
         self.cell_surface = pygame.image.load(image_files[config.CELL_SURFACE])
         self.button_cell = [
@@ -74,17 +71,7 @@ class Cells:
             ]
 
         for i in range(9):
-            self.cells[i].read(config, self.data, self.button_cell, self.nums_new)
-
-    def read(self, config, load):
-        if load is True:
-            return config.SAVE_DATA
-
-        else:
-            config.SAVE_DATA = None
-            with open(config.DATA_PATH[self.difficulty], "r") as fp:
-                data = json.load(fp)
-            return data[randint(0, len(data) - 1)]
+            self.cells[i].read(config, self.data, self.button_cell, self.nums_new, self.nums_new_over)
 
     def check_cell_button_is_over(self, config, point):
         config.CELL_OVER_INDEX[0] = -1
@@ -128,7 +115,7 @@ class Cells:
                     i, j, _, k = button.label
                     if button.is_press(point) and self.data[i][j] < 0:
                         push(config.UN_STK, (no, i, j, k, self.data[i][j]))
-                        button.change_image(self.button_cell[0])
+                        button.change_image(self.button_cell[0], self.button_cell[1])
                         self.data[i][j] = 0
                         config.CELL_BUTTON_NUM += 1
 
@@ -149,10 +136,10 @@ class Cells:
         cell = self.cells[config.CELL_CLICK_INDEX[0]]
         possible = config.CELL_BUTTON_POSSIBLE
 
-        for i in range(9):
-            button = cell.expand_buttons[i]
+        for l in range(9):
+            button = cell.expand_buttons[l]
 
-            if possible[i] == 1 and button.is_press(point):
+            if possible[l] == 1 and button.is_press(point):
                 no, i, j, _, k = config.CELL_CLICK_INDEX
                 if self.data[i][j] == 0:
                     config.CELL_BUTTON_NUM -= 1
@@ -173,17 +160,24 @@ class Cells:
             cell = self.cells[no]
 
             for k in range(9):
-                if self.data[i][k] > 0:
-                    possible[self.data[i][k] - 1] = 0
+                if self.data[i][k] != 0:
+                    possible[abs(self.data[i][k]) - 1] = 0
 
-                if self.data[k][j] > 0:
-                    possible[self.data[k][j] - 1] = 0
+                if self.data[k][j] != 0:
+                    possible[abs(self.data[k][j]) - 1] = 0
 
                 index_x, index_y = cell.index[k]
-                if self.data[index_x][index_y] > 0:
-                    possible[self.data[index_x][index_y] - 1] = 0
+                if self.data[index_x][index_y] != 0:
+                    possible[abs(self.data[index_x][index_y]) - 1] = 0
 
             config.CELL_BUTTON_POSSIBLE = possible
+
+    def check_clear(self, config):
+        for i in range(9):
+            for j in range(9):
+                if self.data[i][j] < 0 and self.data[i][j] != -config.SOLUTION[i][j]:
+                    return False
+        return True
 
     def undo(self, config):
         if not is_empty(config.UN_STK):

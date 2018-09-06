@@ -109,6 +109,29 @@ class Config:
         self.BUTTON_CLEAR_RESTART = 71
         self.TEXT_CONG = 72
         # ---------------------------------------------------------------------------------------
+
+        # Generator config
+        self.GENERATOR_API_PATH = r"./lib/_generator.cp36-win_amd64.pyd"
+        self.API_FOUND = True
+        # ---------------------------------------------------------------------------------------
+        # Gaming config
+        self.CELL_CLICK_INDEX = [-1, -1, -1, -1, -1] # cell_no, (index: x, y), no, button_no
+        self.CELL_BUTTON_NUM = 0
+        self.CELL_BUTTON_POSSIBLE = [1, 1, 1, 1, 1, 1, 1, 1, 1]
+
+        self.CELL_OVER_INDEX = [-1, -1]
+
+        self.UN_STK = [
+            [],
+            0
+        ]
+        self.RE_STK = [
+            [],
+            0
+        ]
+        self.SOLUTION = None
+        self.PROBLEM = None
+        # ---------------------------------------------------------------------------------------
         # Setting config
         self.SETTING_ON = 1
         self.SETTING_OFF = 0
@@ -126,25 +149,10 @@ class Config:
 
         # Read settings from json file
         with open(self.SETTING_PATH, "r") as fp:
-            self.SETTING, self.SAVE_DATA, self.TIME = json.load(fp)
+            self.SETTING, SAVE_DATA, self.TIME = json.load(fp)
+        self.SOLUTION, self.PROBLEM = SAVE_DATA
 
         self.SETTING_COLOR_THEME = 0
-        # ---------------------------------------------------------------------------------------
-        # Gaming config
-        self.CELL_CLICK_INDEX = [-1, -1, -1, -1, -1] # cell_no, (index: x, y), no, button_no
-        self.CELL_BUTTON_NUM = 0
-        self.CELL_BUTTON_POSSIBLE = [1, 1, 1, 1, 1, 1, 1, 1, 1]
-
-        self.CELL_OVER_INDEX = [-1, -1]
-
-        self.UN_STK = [
-            [],
-            0
-        ]
-        self.RE_STK = [
-            [],
-            0
-        ]
         # ---------------------------------------------------------------------------------------
         # Position config
         self.FACTOR = 1.5
@@ -225,12 +233,14 @@ class Config:
         self.DIFFICULTY_EASY = 0
         self.DIFFICULTY_NORMAL = 1
         self.DIFFICULTY_HARD = 2
+        self.DATA_GENERATE = 3
         self.DIFFICULTY = self.DIFFICULTY_EASY
 
         self.DATA_PATH = [
             "./data/easy.json",
             "./data/normal.json",
-            "./data/hard.json"
+            "./data/hard.json",
+            "./data/generate_data.json"
         ]
 
     def save_config(self, game):
@@ -241,14 +251,20 @@ class Config:
         if self.GAME_STATE is self.GAME_STATE_GAMING:
             data = [
                 self.SETTING,
-                game.cells.data,
+                [
+                    self.SOLUTION,
+                    game.cells.data
+                ],
                 self.TIME
             ]
 
         else:
             data = [
                 self.SETTING,
-                None,
+                [
+                    None,
+                    None
+                ],
                 0
             ]
 

@@ -3,11 +3,15 @@
 from lib.cell import Cells
 import pygame
 from lib.button import Button
+from lib.generator import Generator
+import json
 
 
 class Game:
     def __init__(self, config, image_files):
         self.image_files = image_files
+        self.generator = Generator(config)
+
         self.difficulty = config.DIFFICULTY
         self.cells = None
         self.font = pygame.font.Font(config.FONT_MYRAID_PATH, 30)
@@ -32,10 +36,15 @@ class Game:
             self.difficulty = difficulty
             config.TIME = 0
 
+            if config.API_FOUND is True:
+                self.generator.set_difficulty(difficulty)
+                self.generator.generate_sudoku()
+
+        load_data(config, difficulty, load)
         config.UN_STK[0].clear()
         config.RE_STK[0].clear()
         config.CELL_BUTTON_NUM = config.UN_STK[1] = config.RE_STK[1] = 0
-        self.cells = Cells(config, self.image_files, self.difficulty, load)
+        self.cells = Cells(config, self.image_files)
 
     def check_stack(self, config):
         if config.UN_STK[1] == 0 and self.game_buttons[0].label == 0:
@@ -72,13 +81,13 @@ class Game:
 
         elif self.game_buttons[2].is_press(point):
             config.GAME_STATE = config.GAME_STATE_MENU
-            config.SAVE_DATA = self.cells.data
+            config.PROBLEM = self.cells.data
 
         elif self.game_buttons[3].is_press(point):
             self.init(config)
 
     def check_right_click(self, config, point):
-        if config.CELL_CLICK_INDEX[0] != 0:
+        if config.CELL_CLICK_INDEX[0] != -1:
             config.CELL_CLICK_INDEX[0] = -1
         self.cells.check_cell_button_is_over(config, point)
 
@@ -103,3 +112,22 @@ class Game:
         hour = config.TIME // 3600
         time_str = "{} : {:0>2} : {:0>2}".format(hour, minute, sec)
         surface.blit(self.font.render(time_str, True, config.TIMER_COLOR), config.TIMER_POS)
+
+
+def load_data(config, difficulty, load):
+    # Create a new game
+    if load is False and difficulty is not None:
+        if config.API_FOUND is True:
+            with open(config.DATA_PATH[config.DATA_GENERATE]) as fp:
+                solution, problem = json.load(fp)
+                config.SOLUTION = [solution[i * 9: i * 9 + 9] for i in range(9)]
+                config.PROBLEM = [problem[i * 9: i * 9 + 9] for i in range(9)]
+
+        else:
+            pass
+    # Flush
+    elif load is False and difficulty is None:
+        for i in range(9):
+            for j in range(9):
+                if config.PROBLEM[i][j] < 0:
+                    config.PROBLEM[i][j] = 0
