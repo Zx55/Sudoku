@@ -63,6 +63,7 @@ class Config:
         self.IMAGE_FILE_STATE = self.IMAGE_FILE_STATE_INIT
 
         # Image index
+        self.ICON = 102
         self.BUTTON_PLAY = 0
         self.BUTTON_PAUSE = 1
         self.BUTTON_STOP = 2
@@ -90,6 +91,7 @@ class Config:
 
         self.INPUT_BOX = 100
         self.BUTTON_RETURN = 101
+        self.BUTTON_CONFIRM = 103
 
         self.THEMES_720 = [15, 17, 19, 21, 23]
 
@@ -177,8 +179,9 @@ class Config:
         self.HARD_POS = (490, 335)
         self.RANDOM_POS = (490, 405)
         self.LOAD_POS = (490, 475)
-        self.INPUT_BOX_POS = (340, 335)
-        self.INPUT_TEXT_POS = (640, 350)
+        self.INPUT_BOX_POS = (340, 265)
+        self.INPUT_TEXT_POS = (640, 280)
+        self.CONFIRM_POS = (490, 405)
         self.RETURN_POS = (490, 475)
         self.SETTING_SURFACE_POS = (440, 178)
         self.CLOSE_SETTING_POS = (822, 160)

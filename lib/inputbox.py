@@ -12,6 +12,8 @@ class InputBox:
         self.box_surface = pygame.image.load(image_files[config.INPUT_BOX])
         self.font = pygame.font.Font(config.FONT_MYRAID_PATH, 30)
         self.input_str = []
+        self.confirm_button = Button("Confirm", config.CONFIRM_POS,
+                                     pygame.image.load(image_files[config.BUTTON_CONFIRM]), None)
         self.return_button = Button("Return", config.RETURN_POS,
                                     pygame.image.load(image_files[config.BUTTON_RETURN]), None)
 
@@ -22,32 +24,38 @@ class InputBox:
             self.input_str = self.input_str[0:-1]
 
         elif key is pygame.K_RETURN:
-            seed_str = "".join(self.input_str)
-            if seed_str == "":
-                config.GAME_STATE = config.GAME_STATE_PREV = config.GAME_STATE_GAMING
-                seed = randint(0, 9223372036854775806)
-                game.init(config, seed=seed)
-
-            elif seed_str.isdigit():
-                config.GAME_STATE = config.GAME_STATE_PREV = config.GAME_STATE_GAMING
-                seed = int("".join(self.input_str)) % 9223372036854775806
-                game.init(config, seed=seed)
-
-            else:
-                config.GAME_STATE = config.GAME_STATE_PREV = config.GAME_STATE_MENU
-                root = tk.Tk()
-                root.withdraw()
-                msg.showerror('Error', 'Seed must be a number.')
+            self.random_game(config, game)
 
         elif 32 <= key < 127:
             self.input_str.append(chr(key))
 
-    def check_return_button_is_press(self, config, point):
+    def check_input_button_is_press(self, config, point, game):
         if self.return_button.is_press(point):
             config.GAME_STATE = config.GAME_STATE_PREV = config.GAME_STATE_MENU
+        elif self.confirm_button.is_press(point):
+            self.random_game(config, game)
+
+    def random_game(self, config, game):
+        seed_str = "".join(self.input_str)
+        if seed_str == "":
+            config.GAME_STATE = config.GAME_STATE_PREV = config.GAME_STATE_GAMING
+            seed = randint(0, 9223372036854775806)
+            game.init(config, seed=seed)
+
+        elif seed_str.isdigit():
+            config.GAME_STATE = config.GAME_STATE_PREV = config.GAME_STATE_GAMING
+            seed = int("".join(self.input_str)) % 9223372036854775806
+            game.init(config, seed=seed)
+
+        else:
+            config.GAME_STATE = config.GAME_STATE_PREV = config.GAME_STATE_MENU
+            root = tk.Tk()
+            root.withdraw()
+            msg.showerror('Error', 'Seed must be a number.')
 
     def render(self, config, surface):
         surface.blit(self.box_surface, config.INPUT_BOX_POS)
+        self.confirm_button.render(surface)
         self.return_button.render(surface)
 
         text = "".join(self.input_str[-32:])

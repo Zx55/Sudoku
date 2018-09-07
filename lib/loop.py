@@ -56,7 +56,7 @@ def check_events(config, me, menu, setting, game):
                     game.check_clear_button_is_press(config, mouse_pos)
 
                 elif config.GAME_STATE is config.GAME_STATE_INPUT:
-                    menu.box.check_return_button_is_press(config, mouse_pos)
+                    menu.box.check_input_button_is_press(config, mouse_pos, game)
 
         elif event.type is pygame.MOUSEMOTION:
             if config.GAME_STATE is config.GAME_STATE_GAMING:
@@ -123,6 +123,7 @@ def run():
     # Create game window
     screen = pygame.display.set_mode(config.DISPLAY_RESOLUTION, config.DISPLAY_MODE, 32)
     pygame.display.set_caption("Sudoku")
+    pygame.display.set_icon(pygame.image.load(image_files[config.ICON]))
 
     # Main Loop
     while True:
