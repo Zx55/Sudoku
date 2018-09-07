@@ -12,6 +12,7 @@ class Config:
         self.GAME_STATE_SETTING = 1
         self.GAME_STATE_GAMING = 2
         self.GAME_STATE_CLEAR = 3
+        self.GAME_STATE_INPUT = 4
         self.GAME_STATE = self.GAME_STATE_MENU
         self.GAME_STATE_PREV = self.GAME_STATE
         # ---------------------------------------------------------------------------------------
@@ -49,6 +50,7 @@ class Config:
         self.FONT_MYRAID_PATH = r'./font/MyriadPro-Bold.ttf'
         self.FONT_ERAS_PATH = r'./font/ERASMD.TTF'
         self.TEXT_COLOR = (70, 70, 70)
+        self.INPUT_COLOR = (70, 70, 70)
         self.NUM_COLOR_BUILTIN = (20, 20, 20)
         self.NUM_COLOR_NEW = (90, 145, 255)
         self.TIMER_COLOR = (20, 20, 20)
@@ -82,8 +84,12 @@ class Config:
         self.BUTTON_EASY = 11
         self.BUTTON_NORMAL = 12
         self.BUTTON_HARD = 13
+        self.BUTTON_RANDOM = 99
         self.BUTTON_LOAD = 14
         self.BUTTON_LOAD_INACTIVE = 73
+
+        self.INPUT_BOX = 100
+        self.BUTTON_RETURN = 101
 
         self.THEMES_720 = [15, 17, 19, 21, 23]
 
@@ -109,7 +115,6 @@ class Config:
         self.BUTTON_CLEAR_RESTART = 71
         self.TEXT_CONG = 72
         # ---------------------------------------------------------------------------------------
-
         # Generator config
         self.GENERATOR_API_PATH = r"./lib/_generator.cp36-win_amd64.pyd"
         self.API_FOUND = True
@@ -167,10 +172,14 @@ class Config:
         self.GAME_MENU_POS = (1100, 660)
         self.FLUSH_POS = (1040, 660)
         self.SETTING_POS = (1160, 10)
-        self.EASY_POS = (490, 222)
-        self.NORMAL_POS = (490, 296)
-        self.HARD_POS = (490, 370)
-        self.LOAD_POS = (490, 444)
+        self.EASY_POS = (490, 195)
+        self.NORMAL_POS = (490, 265)
+        self.HARD_POS = (490, 335)
+        self.RANDOM_POS = (490, 405)
+        self.LOAD_POS = (490, 475)
+        self.INPUT_BOX_POS = (340, 335)
+        self.INPUT_TEXT_POS = (640, 350)
+        self.RETURN_POS = (490, 475)
         self.SETTING_SURFACE_POS = (440, 178)
         self.CLOSE_SETTING_POS = (822, 160)
         self.TEXT_SETTING_POS = (460, 200)
@@ -224,9 +233,9 @@ class Config:
             (35, 56),
             (58, 56),
         ]
-        self.CLEAR_MENU_POS = (490, 370)
-        self.CLEAR_RE_POS = (490, 444)
-        self.CONG_POS = (435, 240)
+        self.CLEAR_MENU_POS = (490, 335)
+        self.CLEAR_RE_POS = (490, 405)
+        self.CONG_POS = (435, 220)
         self.TIMER_POS = (20, 20)
         # ---------------------------------------------------------------------------------------
         # Data Path

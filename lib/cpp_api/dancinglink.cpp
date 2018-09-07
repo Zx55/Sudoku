@@ -1,13 +1,11 @@
 #include "dancinglink.h"
 
-
 DancingLink::DancingLink(int *problem)
 {
 	init(problem);
 }
 
-DancingLink::DancingLink() :
-	_head(nullptr) { }
+DancingLink::DancingLink() : _head(nullptr) {}
 
 bool DancingLink::solve()
 {
@@ -20,6 +18,7 @@ bool DancingLink::solve()
 			while (index == -1 || val == -1) {
 				if (n->index < 100)
 					index = n->index;
+
 				else
 					val = n->index % 10;
 				n = n->right;
@@ -59,11 +58,11 @@ void DancingLink::change_problem(int *problem)
 
 void DancingLink::init(const int *problem)
 {
-	for (auto i = 0; i < N; ++i) {
+	for (auto i = 0; i < N; ++i)
 		_problem[i] = problem[i];
-	}
 
 	_index_alloc = 0;
+	_stk.clear();
 	_stk.reserve(100);
 
 	std::memset(_rows, 0, sizeof _rows);

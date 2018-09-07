@@ -1,10 +1,11 @@
 # -*- coding:utf-8 -*-
 
-from lib.cell import Cells
 import pygame
+import json
+from random import randint
+from lib.cell import Cells
 from lib.button import Button
 from lib.generator import Generator
-import json
 
 
 class Game:
@@ -21,17 +22,21 @@ class Game:
                    pygame.image.load(image_files[config.BUTTON_UNDO_INACTIVE]), None),
             Button(0, config.REDO_POS, pygame.image.load(image_files[config.BUTTON_REDO]), None,
                    pygame.image.load(image_files[config.BUTTON_REDO_INACTIVE]), None),
-            Button("Menu", config.GAME_MENU_POS, pygame.image.load(image_files[config.BUTTON_GAME_MENU]), None),
-            Button("Flush", config.FLUSH_POS, pygame.image.load(image_files[config.BUTTON_FLUSH]), None),
+            Button("Menu", config.GAME_MENU_POS,
+                   pygame.image.load(image_files[config.BUTTON_GAME_MENU]), None),
+            Button("Flush", config.FLUSH_POS,
+                   pygame.image.load(image_files[config.BUTTON_FLUSH]), None),
         ]
 
         self.congratulation = pygame.image.load(image_files[config.TEXT_CONG])
         self.clear_buttons = [
-            Button("Restart", config.CLEAR_RE_POS, pygame.image.load(image_files[config.BUTTON_CLEAR_RESTART]), None),
-            Button("Menu", config.CLEAR_MENU_POS, pygame.image.load(image_files[config.BUTTON_CLEAR_MENU]), None)
+            Button("Restart", config.CLEAR_RE_POS,
+                   pygame.image.load(image_files[config.BUTTON_CLEAR_RESTART]), None),
+            Button("Menu", config.CLEAR_MENU_POS,
+                   pygame.image.load(image_files[config.BUTTON_CLEAR_MENU]), None)
         ]
 
-    def init(self, config, difficulty=None, load=False):
+    def init(self, config, difficulty=None, load=False, seed=None):
         if difficulty is not None:
             self.difficulty = difficulty
             config.TIME = 0
@@ -40,7 +45,12 @@ class Game:
                 self.generator.set_difficulty(difficulty)
                 self.generator.generate_sudoku()
 
-        load_data(config, difficulty, load)
+        if seed is not None and config.API_FOUND is True:
+            config.TIME = 0
+            self.generator.set_seed(seed)
+            self.generator.generate_sudoku()
+
+        load_data(config, difficulty, load, seed)
         config.UN_STK[0].clear()
         config.RE_STK[0].clear()
         config.CELL_BUTTON_NUM = config.UN_STK[1] = config.RE_STK[1] = 0
@@ -114,17 +124,21 @@ class Game:
         surface.blit(self.font.render(time_str, True, config.TIMER_COLOR), config.TIMER_POS)
 
 
-def load_data(config, difficulty, load):
-    # Create a new game
-    if load is False and difficulty is not None:
+def load_data(config, difficulty, load, seed):
+    if (load is False and difficulty is not None) or seed is not None:
+        # Create a new game or Create a random game from generator
         if config.API_FOUND is True:
             with open(config.DATA_PATH[config.DATA_GENERATE]) as fp:
                 solution, problem = json.load(fp)
                 config.SOLUTION = [solution[i * 9: i * 9 + 9] for i in range(9)]
                 config.PROBLEM = [problem[i * 9: i * 9 + 9] for i in range(9)]
 
+        # Create a new game from local data
         else:
-            pass
+            with open(config.DATA_PATH[difficulty], "r") as fp:
+                data = json.load(fp)
+                config.SOLUTION, config.PROBLEM = data[randint(0, len(data) - 1)]
+
     # Flush
     elif load is False and difficulty is None:
         for i in range(9):

@@ -2,11 +2,13 @@
 
 import pygame
 from lib.button import Button
+from lib.inputbox import InputBox
 
 
 class Menu:
     def __init__(self, config, image_files):
         self.image_files = image_files
+        self.box = InputBox(config, image_files)
 
         self.menu_buttons = [
             Button(config.DIFFICULTY_EASY, config.EASY_POS,
@@ -15,9 +17,11 @@ class Menu:
                    pygame.image.load(self.image_files[config.BUTTON_NORMAL]), None),
             Button(config.DIFFICULTY_HARD, config.HARD_POS,
                    pygame.image.load(self.image_files[config.BUTTON_HARD]), None),
+            Button("Random", config.RANDOM_POS,
+                   pygame.image.load(self.image_files[config.BUTTON_RANDOM]), None),
             Button(True, config.LOAD_POS,
                    pygame.image.load(self.image_files[config.BUTTON_LOAD]), None,
-                   pygame.image.load(self.image_files[config.BUTTON_LOAD_INACTIVE]), None)
+                   pygame.image.load(self.image_files[config.BUTTON_LOAD_INACTIVE]), None),
         ]
         self.utils_buttons = [
             Button(r"Quit", config.QUIT_POS,
@@ -37,10 +41,14 @@ class Menu:
             button.label = True
 
     def check_menu_button_is_press(self, config, point, game):
-        for button in self.menu_buttons[:-1]:
+        for button in self.menu_buttons[:-2]:
             if button.is_press(point):
                 config.GAME_STATE = config.GAME_STATE_PREV = config.GAME_STATE_GAMING
                 game.init(config, difficulty=button.label)
+
+        if self.menu_buttons[-2].is_press(point):
+            self.box.input_str = []
+            config.GAME_STATE = config.GAME_STATE_PREV = config.GAME_STATE_INPUT
 
         if self.menu_buttons[-1].is_press(point) and config.PROBLEM is not None:
             config.GAME_STATE = config.GAME_STATE_PREV = config.GAME_STATE_GAMING

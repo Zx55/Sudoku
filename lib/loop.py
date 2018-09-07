@@ -55,6 +55,9 @@ def check_events(config, me, menu, setting, game):
                 elif config.GAME_STATE is config.GAME_STATE_CLEAR:
                     game.check_clear_button_is_press(config, mouse_pos)
 
+                elif config.GAME_STATE is config.GAME_STATE_INPUT:
+                    menu.box.check_return_button_is_press(config, mouse_pos)
+
         elif event.type is pygame.MOUSEMOTION:
             if config.GAME_STATE is config.GAME_STATE_GAMING:
                 if config.CELL_CLICK_INDEX[0] == -1:
@@ -62,6 +65,9 @@ def check_events(config, me, menu, setting, game):
 
                 else:
                     game.cells.check_expand_button_is_over(config, event.pos)
+
+        elif config.GAME_STATE_INPUT is config.GAME_STATE_INPUT and event.type is pygame.KEYDOWN:
+            menu.box.key_input(config, event, game)
 
 
 def render(config, screen, me, menu, setting, themes, game):
@@ -72,6 +78,10 @@ def render(config, screen, me, menu, setting, themes, game):
     if config.GAME_STATE is config.GAME_STATE_MENU \
             or config.GAME_STATE_PREV is config.GAME_STATE_MENU:
         menu.render_menu_buttons(config, screen)
+
+    elif config.GAME_STATE is config.GAME_STATE_INPUT \
+            or config.GAME_STATE_PREV is config.GAME_STATE_INPUT:
+        menu.box.render(config, screen)
 
     elif config.GAME_STATE is config.GAME_STATE_GAMING \
             or config.GAME_STATE_PREV is config.GAME_STATE_GAMING:
@@ -89,7 +99,7 @@ def render(config, screen, me, menu, setting, themes, game):
 
 
 def result_check(config, game):
-    print(config.CELL_BUTTON_NUM)
+    print(config.API_FOUND)
     if config.GAME_STATE is config.GAME_STATE_GAMING and config.CELL_BUTTON_NUM == 0:
         if game.cells.check_clear(config):
             config.GAME_STATE = config.GAME_STATE_PREV = config.GAME_STATE_CLEAR
