@@ -1,20 +1,19 @@
 #include "generator.h"
 
 std::mt19937 Generator::_mt;
-DancingLink Generator::_dlx;
 
 Generator::Generator(long long s) : _seed(s), _has_seed(true), _difficulty(_seed % 3)
 {
-    std::memset(_item.problem, 0, sizeof _item.problem);
-    std::memset(_item.solution, 0, sizeof _item.solution);
+    memset(_item.problem, 0, sizeof _item.problem);
+    memset(_item.solution, 0, sizeof _item.solution);
 
     set_difficulty(_difficulty);
 }
 
 Generator::Generator() : _has_seed(false)
 {
-    std::memset(_item.problem, 0, sizeof _item.problem);
-    std::memset(_item.solution, 0, sizeof _item.solution);
+    memset(_item.problem, 0, sizeof _item.problem);
+    memset(_item.solution, 0, sizeof _item.solution);
 }
 
 void Generator::set_seed(long long s)
@@ -30,7 +29,8 @@ void Generator::set_difficulty(int difficulty)
     _difficulty = difficulty % 3;
     const auto bias = _mt() % 5;
 
-    switch (_difficulty) {
+    switch (_difficulty)
+    {
     case difficulty_easy:
         _given = 36 + bias; // 36~40
         _bound = 3;
@@ -46,6 +46,41 @@ void Generator::set_difficulty(int difficulty)
     }
 }
 
+void Generator::show_sudoku(int *ar)
+{
+    putchar('\n');
+    auto row = 0, col = 0;
+    auto flag = true;
+    for (auto i = 0; i < N; ++i)
+    {
+        if (col % 3 == 0 && i != 0)
+        {
+            printf("| ");
+        }
+        if (i % 9 == 0 && i != 0)
+            putchar('\n');
+
+        if (flag && row % 3 == 0)
+        {
+            puts(" ----------------------");
+            flag = false;
+        }
+
+        if (i % 9 == 0)
+            putchar('|');
+
+        printf("%d ", ar[i]);
+
+        if (++col > 8)
+        {
+            ++row;
+            flag = true;
+            col = 0;
+        }
+    }
+    printf("|\n ----------------------\n");
+}
+
 void Generator::generate()
 {
     if (!_has_seed)
@@ -54,7 +89,8 @@ void Generator::generate()
 
     int holes, bound;
 
-    switch (_difficulty) {
+    switch (_difficulty)
+    {
     case difficulty_easy:
         bound = 40;
         break;
@@ -66,7 +102,8 @@ void Generator::generate()
         break;
     }
 
-    do {
+    do
+    {
         generate_solution();
         holes = dig_holes();
     } while (holes > bound);
@@ -82,16 +119,19 @@ void Generator::generate_solution()
     std::vector<std::vector<int>> index{
         {0, 1, 2, 9, 10, 11, 18, 19, 20},
         {30, 31, 32, 39, 40, 41, 48, 49, 50},
-        {60, 61, 62, 69, 70, 71, 78, 79, 80}
-    };
+        {60, 61, 62, 69, 70, 71, 78, 79, 80}};
 
-    do {
-        std::memset(_item.solution, 0, sizeof _item.solution);
+    do
+    {
+        memset(_item.solution, 0, sizeof _item.solution);
 
-        for (auto i = 0; i < 3; ++i) {
-            std::shuffle(index[i].begin(), index[i].end(), _mt);
+        for (auto i = 0; i < 3; ++i)
+        {
+            shuffle(index[i].begin(), index[i].end(), _mt);
             for (auto j = 0; j < 9; ++j)
+            {
                 _item.solution[index[i][j]] = j + 1;
+            }
         }
 
         _dlx.change_problem(_item.solution);
@@ -100,37 +140,42 @@ void Generator::generate_solution()
 
     const auto solution = _dlx.solution();
     for (auto i = 0; i < N; ++i)
+    {
         _item.solution[i] = solution[i];
+    }
 }
 
 int Generator::dig_holes()
 {
     for (auto i = 0; i < N; ++i)
         _item.problem[i] = _item.solution[i];
-    for (auto i = 0; i < 6; ++i) {
+
+    const int pre_dig[] = {0, 1, 2, 3, 4, 5, 9, 15, 16, 17, 18, 27, 30, 33, 36, 45, 55, 57, 60, 64, 73};
+    for (int i : pre_dig)
+    {
         _item.problem[i] = 0;
-        _item.problem[i * 9] = 0;
     }
-    _item.problem[15] = _item.problem[16] = _item.problem[17] =
-        _item.problem[55] = _item.problem[64] = _item.problem[73] =
-        _item.problem[30] = _item.problem[33] =
-        _item.problem[57] = _item.problem[60] = 0;
 
     int row_left[] = {3, 5, 8, 6, 8, 8, 6, 8, 8};
     int col_left[] = {3, 5, 8, 6, 8, 8, 6, 8, 8};
 
     int i, j, row = 0, col = 6;
-    for (i = N - 21, j = 6; i >= _given && j < 81; ++j) {
+    for (i = N - 21, j = 6; i >= _given && j < 81; ++j)
+    {
         if (_item.problem[j] != 0 && row_left[row] > _bound &&
-            col_left[col] > _bound) {
+            col_left[col] > _bound)
+        {
             const auto tmp = _item.problem[j];
             bool flag = true;
 
-            for (auto k = 1; k <= 9; ++k) {
-                if (k != tmp) {
+            for (auto k = 1; k <= 9; ++k)
+            {
+                if (k != tmp)
+                {
                     _item.problem[j] = k;
                     _dlx.change_problem(_item.problem);
-                    if (_dlx.solve()) {
+                    if (_dlx.solve())
+                    {
                         flag = false;
                         break;
                     }
@@ -139,15 +184,84 @@ int Generator::dig_holes()
 
             if (!flag)
                 _item.problem[j] = tmp;
-            else {
+            else
+            {
                 _item.problem[j] = 0;
-                --i;
-                --row_left[row];
-                --col_left[col];
+                --i, --row_left[row], --col_left[col];
             }
         }
 
-        if (++col > 8) {
+        if (++col > 8)
+        {
+            ++row;
+            col = 0;
+        }
+    }
+
+    return i;
+}
+
+int Generator::dig_holes_pack()
+{
+    for (auto i = 0; i < N; ++i)
+        _item.problem[i] = _item.solution[i];
+
+    int pack[] = {
+        511, 511, 511, 511, 511, 511, 511, 511, 511, // rows
+        511, 511, 511, 511, 511, 511, 511, 511, 511, // cols
+        511, 511, 511, 511, 511, 511, 511, 511, 511, // cells
+    };
+
+    const int pre_dig[] = {0, 1, 2, 3, 4, 5, 9, 15, 16, 17, 18, 27, 30, 33, 36, 45, 55, 57, 60, 64, 73};
+    for (auto i = 0; i < 21; ++i)
+    {
+        set_status(pack, i, _item.problem[pre_dig[i]]);
+        _item.problem[pre_dig[i]] = 0;
+    }
+
+    int row_left[] = {3, 5, 8, 6, 8, 8, 6, 8, 8};
+    int col_left[] = {3, 5, 8, 6, 8, 8, 6, 8, 8};
+
+    int i, j, row = 0, col = 6;
+    for (i = N - 21, j = 6; i >= _given && j < 81; ++j)
+    {
+        if (_item.problem[j] != 0 && row_left[row] > _bound &&
+            col_left[col] > _bound)
+        {
+            const auto tmp = _item.problem[j];
+            bool flag = true;
+
+            int status = get_status(pack, row, col);
+            for (auto k = 1; k <= 9; ++k)
+            {
+                if (k != tmp)
+                {
+                    if ((status & 0x1) == 0)
+                    {
+                        _item.problem[j] = k;
+                        _dlx.change_problem(_item.problem);
+                        if (_dlx.solve())
+                        {
+                            flag = false;
+                            break;
+                        }
+                    }
+                    status >>= 1;
+                }
+            }
+
+            if (!flag)
+                _item.problem[j] = tmp;
+            else
+            {
+                set_status(pack, row, col, _item.problem[i]);
+                _item.problem[j] = 0;
+                --i, --row_left[row], --col_left[col];
+            }
+        }
+
+        if (++col > 8)
+        {
             ++row;
             col = 0;
         }
@@ -160,8 +274,10 @@ void Generator::propagation()
 {
     const auto n = _mt() % 6 + 15;
 
-    for (unsigned i = 0; i < n; ++i) {
-        switch (_mt() % 5) {
+    for (unsigned i = 0; i < n; ++i)
+    {
+        switch (_mt() % 5)
+        {
         case 0:
             exchange_digit();
             break;
@@ -205,14 +321,17 @@ void Generator::exchange_digit()
     while (num1 == num2)
         num2 = _mt() % 8 + 1;
 
-    for (auto i = 0; i < N; ++i) {
-        if (_item.solution[i] == num1) {
+    for (auto i = 0; i < N; ++i)
+    {
+        if (_item.solution[i] == num1)
+        {
             _item.solution[i] = num2;
 
             if (_item.problem[i] != 0)
                 _item.problem[i] = num2;
         }
-        else if (_item.solution[i] == num2) {
+        else if (_item.solution[i] == num2)
+        {
             _item.solution[i] = num1;
 
             if (_item.problem[i] != 0)
@@ -274,7 +393,8 @@ void Generator::swap(int *ar, int i, int j)
 
 void Generator::exchange_row(const unsigned row1, const unsigned row2)
 {
-    for (unsigned i = 0, j = row1 * 9, k = row2 * 9; i < 9; ++i, ++j, ++k) {
+    for (unsigned i = 0, j = row1 * 9, k = row2 * 9; i < 9; ++i, ++j, ++k)
+    {
         swap(_item.solution, j, k);
         swap(_item.problem, j, k);
     }
@@ -283,8 +403,38 @@ void Generator::exchange_row(const unsigned row1, const unsigned row2)
 void Generator::exchange_col(const unsigned col1, const unsigned col2)
 {
     for (unsigned i = 0, j = i * 9 + col1, k = i * 9 + col2;
-         i < 9; ++i, j += 9, k += 9) {
+         i < 9; ++i, j += 9, k += 9)
+    {
         swap(_item.solution, j, k);
         swap(_item.problem, j, k);
     }
+}
+
+void Generator::set_status(int *pack, int n, int val)
+{
+    const int row = n / 9;
+    const int col = n % 9;
+    const int cell = row / 3 * 3 + col / 3;
+
+    const int mask = ~(1 << (val - 1));
+    pack[row] &= mask;
+    pack[9 + col] &= mask;
+    pack[18 + cell] &= mask;
+}
+
+void Generator::set_status(int *pack, int row, int col, int val)
+{
+    const int cell = row / 3 * 3 + col / 3;
+
+    const int mask = ~(1 << (val - 1));
+    pack[row] &= mask;
+    pack[9 + col] &= mask;
+    pack[18 + cell] &= mask;
+}
+
+int Generator::get_status(const int *pack, int row, int col)
+{
+    const int cell = row / 3 * 3 + col / 3;
+
+    return pack[row] & pack[9 + col] & pack[18 + cell];
 }

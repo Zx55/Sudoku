@@ -9,16 +9,18 @@ DancingLink::DancingLink() : _head(nullptr) {}
 
 bool DancingLink::solve()
 {
-	if (_head->left == _head) {
+	if (_head->left == _head)
+	{
 		const auto sz = _stk.size();
-		for (size_t i = 0; i < sz; ++i) {
+		for (size_t i = 0; i < sz; ++i)
+		{
 			Node *n = _stk[i];
 
 			int index = -1, val = -1;
-			while (index == -1 || val == -1) {
+			while (index == -1 || val == -1)
+			{
 				if (n->index < 100)
 					index = n->index;
-
 				else
 					val = n->index % 10;
 				n = n->right;
@@ -29,8 +31,10 @@ bool DancingLink::solve()
 	}
 
 	Column *const col = get_min_col();
+
 	remove(col);
-	for (Node *row = col->down; row != col; row = row->down) {
+	for (Node *row = col->down; row != col; row = row->down)
+	{
 		_stk.push_back(row);
 		for (Node *n = row->right; n != row; n = n->right)
 			remove(n->head);
@@ -59,18 +63,21 @@ void DancingLink::change_problem(int *problem)
 void DancingLink::init(const int *problem)
 {
 	for (auto i = 0; i < N; ++i)
+	{
 		_problem[i] = problem[i];
+	}
 
 	_index_alloc = 0;
 	_stk.clear();
 	_stk.reserve(100);
 
-	std::memset(_rows, 0, sizeof _rows);
-	std::memset(_cols, 0, sizeof _cols);
-	std::memset(_cells, 0, sizeof _cells);
+	memset(_rows, 0, sizeof _rows);
+	memset(_cols, 0, sizeof _cols);
+	memset(_cells, 0, sizeof _cells);
 
 	// Remove the filled grid.
-	for (auto i = 0; i < N; ++i) {
+	for (auto i = 0; i < N; ++i)
+	{
 		const int row = i / 9;
 		const int col = i % 9;
 		const int cell = row / 3 * 3 + col / 3;
@@ -88,17 +95,20 @@ void DancingLink::create_cols()
 {
 	_head = create_col(0);
 	_head->left = _head->right = _head;
-	std::memset(_heads, 0, sizeof _heads);
+	memset(_heads, 0, sizeof _heads);
 
 	// The first 81 column describe if the grid is filled.
-	for (int i = 0; i < N; ++i) {
+	for (int i = 0; i < N; ++i)
+	{
 		if (_problem[i] == 0)
 			append_col(i);
 	}
 
 	// The next 243 columns constrain the number that each row, column and cell can be filled.
-	for (int i = 0; i < 9; ++i) {
-		for (int v = 1; v < 10; ++v) {
+	for (int i = 0; i < 9; ++i)
+	{
+		for (int v = 1; v < 10; ++v)
+		{
 			if (!_rows[i][v])
 				append_col(get_row_col(i, v));
 			if (!_cols[i][v])
@@ -111,14 +121,18 @@ void DancingLink::create_cols()
 
 void DancingLink::create_rows()
 {
-	for (int i = 0; i < N; ++i) {
-		if (_problem[i] == 0) {
+	for (int i = 0; i < N; ++i)
+	{
+		if (_problem[i] == 0)
+		{
 			const int row = i / 9;
 			const int col = i % 9;
 			const int cell = row / 3 * 3 + col / 3;
 
-			for (int v = 1; v < 10; ++v) {
-				if (!(_rows[row][v] || _cols[col][v] || _cells[cell][v])) {
+			for (int v = 1; v < 10; ++v)
+			{
+				if (!(_rows[row][v] || _cols[col][v] || _cells[cell][v]))
+				{
 					Node *node_pos = create_row(i);
 					Node *node_row = create_row(get_row_col(row, v));
 					Node *node_col = create_row(get_col_col(col, v));
@@ -201,8 +215,10 @@ Column *DancingLink::get_min_col() const
 	int min_size = 10000;
 	Column *ret = nullptr;
 
-	for (Column *col = _head->right; col != _head; col = col->right) {
-		if (col->size < min_size) {
+	for (Column *col = _head->right; col != _head; col = col->right)
+	{
+		if (col->size < min_size)
+		{
 			min_size = col->size;
 			ret = col;
 
@@ -219,8 +235,10 @@ void DancingLink::remove(Column *col)
 	col->right->left = col->left;
 	col->left->right = col->right;
 
-	for (Node *row = col->down; row != col; row = row->down) {
-		for (Node *n = row->right; n != row; n = n->right) {
+	for (Node *row = col->down; row != col; row = row->down)
+	{
+		for (Node *n = row->right; n != row; n = n->right)
+		{
 			n->down->up = n->up;
 			n->up->down = n->down;
 			--n->head->size;
@@ -230,8 +248,10 @@ void DancingLink::remove(Column *col)
 
 void DancingLink::restore(Column *col)
 {
-	for (Node *row = col->up; row != col; row = row->up) {
-		for (Node *n = row->left; n != row; n = n->left) {
+	for (Node *row = col->up; row != col; row = row->up)
+	{
+		for (Node *n = row->left; n != row; n = n->left)
+		{
 			++n->head->size;
 			n->down->up = n;
 			n->up->down = n;

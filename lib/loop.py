@@ -15,8 +15,6 @@ def check_events(config, me, menu, setting, game):
         if event.type is pygame.QUIT:
             pygame.quit()
             config.save_config(game)
-            if config.API_FOUND is True:
-                game.generator.destroy_generator()
             exit()
 
         elif event.type is config.TRACK_END and config.MUSIC_STATE is config.MUSIC_STATE_PLAY:
@@ -66,7 +64,7 @@ def check_events(config, me, menu, setting, game):
                 else:
                     game.cells.check_expand_button_is_over(config, event.pos)
 
-        elif config.GAME_STATE_INPUT is config.GAME_STATE_INPUT and event.type is pygame.KEYDOWN:
+        elif config.GAME_STATE is config.GAME_STATE_INPUT and event.type is pygame.KEYDOWN:
             menu.box.key_input(config, event, game)
 
 
@@ -99,7 +97,6 @@ def render(config, screen, me, menu, setting, themes, game):
 
 
 def result_check(config, game):
-    print(config.API_FOUND)
     if config.GAME_STATE is config.GAME_STATE_GAMING and config.CELL_BUTTON_NUM == 0:
         if game.cells.check_clear(config):
             config.GAME_STATE = config.GAME_STATE_PREV = config.GAME_STATE_CLEAR

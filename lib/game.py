@@ -11,7 +11,6 @@ from lib.generator import Generator
 class Game:
     def __init__(self, config, image_files):
         self.image_files = image_files
-        self.generator = Generator(config)
 
         self.difficulty = config.DIFFICULTY
         self.cells = None
@@ -42,13 +41,17 @@ class Game:
             config.TIME = 0
 
             if config.API_FOUND is True:
-                self.generator.set_difficulty(difficulty)
-                self.generator.generate_sudoku()
+                gt = Generator(config)
+                gt.set_difficulty(difficulty)
+                gt.generate_sudoku()
+                gt.destroy_generator()
 
         if seed is not None and config.API_FOUND is True:
             config.TIME = 0
-            self.generator.set_seed(seed)
-            self.generator.generate_sudoku()
+            gt = Generator(config)
+            gt.set_seed(seed)
+            gt.generate_sudoku()
+            gt.destroy_generator()
 
         load_data(config, difficulty, load, seed)
         config.UN_STK[0].clear()

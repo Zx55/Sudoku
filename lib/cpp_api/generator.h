@@ -1,25 +1,29 @@
 #pragma once
 #ifndef GENERATOR_H
 #define GENERATOR_H
-
+#define _CRT_SECURE_NO_WARNINGS
 #include "dancinglink.h"
 #include <ctime>
 #include <random>
+#include <algorithm>
 
-enum difficulty {
+enum difficulty
+{
     difficulty_easy,
     difficulty_normal,
     difficulty_hard
 };
 
-struct ReturnItem {
+struct ReturnItem
+{
     int solution[81];
     int problem[81];
     ReturnItem() = default;
     ~ReturnItem() = default;
 };
 
-class Generator {
+class Generator
+{
   public:
     explicit Generator(long long s);
     Generator();
@@ -31,12 +35,18 @@ class Generator {
 
     void set_seed(long long s);
     void set_difficulty(int difficulty);
+    static void show_sudoku(int *ar);
+    ReturnItem ret() const
+    {
+        return _item;
+    }
 
     void generate();
 
   private:
     static std::mt19937 _mt;
-    static DancingLink _dlx;
+
+    DancingLink _dlx;
 
     ReturnItem _item;
     long long _seed = 0;
@@ -47,6 +57,7 @@ class Generator {
 
     void generate_solution();
     int dig_holes();
+    int dig_holes_pack();
     void propagation();
     void write_json();
 
@@ -60,6 +71,10 @@ class Generator {
     static void swap(int *ar, int i, int j);
     void exchange_row(unsigned row1, unsigned row2);
     void exchange_col(unsigned col1, unsigned col2);
+
+    static void set_status(int *pack, int n, int val);
+    static void set_status(int *pack, int row, int col, int val);
+    static int get_status(const int *pack, int row, int col);
 };
 
 #endif // GENERATOR_H
